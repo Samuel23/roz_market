@@ -1,0 +1,146 @@
+// The two read APIs, and the shapes they answer with.
+//
+// Both are Supabase Edge Functions backed by indexed SQL. The anon key is
+// public on purpose - row-level security grants it SELECT on the four market
+// tables and nothing else, and the ingest function is revoked from it - so
+// shipping it in the bundle gives a reader no authority they did not already
+// have by visiting the page.
+
+const URL_BASE = (import.meta.env.VITE_SUPABASE_URL ?? "").replace(/\/+$/, "");
+const ANON = import.meta.env.VITE_SUPABASE_ANON_KEY ?? "";
+
+export const configured = Boolean(URL_BASE && ANON);
+
+export type Listing = {
+  listing_id: string;
+  item_id: number;
+  item_name: string;
+  item_type: number | null;
+  price: number;
+  quantity: number;
+  refine: number;
+  cards: number[];
+  random_options: { index: number; value: number; param: number; text?: string }[];
+  vendor_id: number;
+  shop_title: string | null;
+  owner_name: string | null;
+  vendor_kind: "player" | "assistant" | null;
+  map_name: string | null;
+  coord_x: number | null;
+  coord_y: number | null;
+  updated_at: string;
+};
+
+export type SearchResult = {
+  rows: Listing[];
+  total: number;
+  limit: number;
+  offset: number;
+};
+
+export type PricePoint = {
+  date: string;
+  min: number;
+  avg: number;
+  max: number;
+  volume: number;
+  listings: number;
+};
+
+export type Vendor = {
+  account_id: number;
+  shop_title: string | null;
+  owner_name: string | null;
+  vendor_kind: "player" | "assistant" | null;
+  map_name: string | null;
+  coord_x: number | null;
+  coord_y: number | null;
+  last_seen: string;
+};
+
+export type Query = {
+  q?: string;
+  item_id?: number;
+  min_price?: number;
+  max_price?: number;
+  refine?: number;
+  card_id?: number;
+  opt_id?: number;
+  map?: string;
+  sort?: "price_asc" | "price_desc" | "time_desc";
+  limit?: number;
+  offset?: number;
+};
+
+function headers() {
+  return { apikey: ANON, Authorization: `Bearer ${ANON}` };
+}
+
+function url(fn: string, params: Record<string, unknown>) {
+  const u = new URL(`${URL_BASE}/functions/v1/${fn}`);
+  for (const [k, v] of Object.entries(params)) {
+    if (v === undefined || v === null || v === "") continue;
+    u.searchParams.set(k, String(v));
+  }
+  return u.toString();
+}
+
+export async function searchMarket(
+  query: Query,
+  signal?: AbortSignal,
+): Promise<SearchResult> {
+  if (!configured) throw new Error("not configured");
+  const res = await fetch(url("search-market", query), {
+    headers: headers(),
+    signal,
+  });
+  if (!res.ok) throw new Error(`search failed (${res.status})`);
+  return res.json();
+}
+
+/**
+ * Every vendor indexed on one map, priced or not.
+ *
+ * Read straight from PostgREST rather than through an Edge Function: it is a
+ * plain filtered select on a table the anon key already has SELECT on, and
+ * wrapping that in a function would add a deploy step and a cold start for
+ * nothing.
+ *
+ * The map page needs this because most of a market has no prices. Walking
+ * past a shop records where it is and what it is called; only clicking it or
+ * finding it in a search records what is inside. A map drawn from listings
+ * alone would leave out the majority of the shops standing there.
+ */
+export async function listVendors(
+  map: string,
+  signal?: AbortSignal,
+): Promise<Vendor[]> {
+  if (!configured) throw new Error("not configured");
+  const u = new URL(`${URL_BASE}/rest/v1/vendors`);
+  u.searchParams.set(
+    "select",
+    "account_id,shop_title,owner_name,vendor_kind,map_name,coord_x,coord_y,last_seen",
+  );
+  u.searchParams.set("map_name", `eq.${map}`);
+  u.searchParams.set("coord_x", "not.is.null");
+  u.searchParams.set("order", "last_seen.desc");
+  u.searchParams.set("limit", "1000");
+  const res = await fetch(u.toString(), { headers: headers(), signal });
+  if (!res.ok) throw new Error(`vendors failed (${res.status})`);
+  return res.json();
+}
+
+export async function priceHistory(
+  itemId: number,
+  days = 30,
+  signal?: AbortSignal,
+): Promise<PricePoint[]> {
+  if (!configured) throw new Error("not configured");
+  const res = await fetch(url("price-history", { item_id: itemId, days }), {
+    headers: headers(),
+    signal,
+  });
+  if (!res.ok) throw new Error(`history failed (${res.status})`);
+  const body = await res.json();
+  return body.points ?? [];
+}

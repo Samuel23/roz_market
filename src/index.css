@@ -1,0 +1,53 @@
+@import "tailwindcss";
+
+/* One dark theme, deliberately. The page is read next to a game client that
+   is itself dark, and a light variant that nobody uses is a second design to
+   keep working. */
+@theme {
+  --color-bg: oklch(0.17 0.02 265);
+  --color-panel: oklch(0.22 0.02 265);
+  --color-edge: oklch(0.31 0.02 265);
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  background: var(--color-bg);
+  color: oklch(0.93 0.01 265);
+  font-family: ui-sans-serif, system-ui, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Shop titles are typed by players in Korean, Thai and English alike, and a
+   font stack that silently drops to a fallback mid-string makes a market look
+   broken. */
+.shop-title {
+  font-family: ui-sans-serif, system-ui, "Segoe UI", "Malgun Gothic",
+    "Noto Sans KR", "Noto Sans Thai", sans-serif;
+}
+
+@keyframes radar-ping {
+  0% {
+    transform: scale(0.4);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+}
+
+.radar-ping {
+  animation: radar-ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .radar-ping {
+    animation: none;
+    opacity: 0.5;
+  }
+}

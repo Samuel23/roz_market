@@ -1,0 +1,219 @@
+{
+ "alberta": {
+  "cells": [
+   280,
+   280
+  ],
+  "shared": false
+ },
+ "aldebaran": {
+  "cells": [
+   280,
+   280
+  ],
+  "shared": false
+ },
+ "amatsu": {
+  "cells": [
+   316,
+   316
+  ],
+  "shared": false
+ },
+ "ayothaya": {
+  "cells": [
+   320,
+   320
+  ],
+  "shared": false
+ },
+ "brasilis": {
+  "cells": [
+   400,
+   400
+  ],
+  "shared": false
+ },
+ "comodo": {
+  "cells": [
+   360,
+   380
+  ],
+  "shared": false
+ },
+ "dewata": {
+  "cells": [
+   340,
+   340
+  ],
+  "shared": false
+ },
+ "eclage": {
+  "cells": [
+   400,
+   400
+  ],
+  "shared": false
+ },
+ "einbroch": {
+  "cells": [
+   340,
+   380
+  ],
+  "shared": false
+ },
+ "geffen": {
+  "cells": [
+   240,
+   240
+  ],
+  "shared": false
+ },
+ "gonryun": {
+  "cells": [
+   300,
+   300
+  ],
+  "shared": false
+ },
+ "hugel": {
+  "cells": [
+   268,
+   280
+  ],
+  "shared": false
+ },
+ "izlude": {
+  "cells": [
+   268,
+   300
+  ],
+  "shared": false
+ },
+ "jawaii": {
+  "cells": [
+   340,
+   360
+  ],
+  "shared": false
+ },
+ "lighthalzen": {
+  "cells": [
+   400,
+   360
+  ],
+  "shared": false
+ },
+ "louyang": {
+  "cells": [
+   360,
+   360
+  ],
+  "shared": false
+ },
+ "malangdo": {
+  "cells": [
+   360,
+   380
+  ],
+  "shared": false
+ },
+ "malaya": {
+  "cells": [
+   400,
+   400
+  ],
+  "shared": false
+ },
+ "morocc": {
+  "cells": [
+   320,
+   320
+  ],
+  "shared": false
+ },
+ "moscovia": {
+  "cells": [
+   400,
+   400
+  ],
+  "shared": false
+ },
+ "niflheim": {
+  "cells": [
+   400,
+   300
+  ],
+  "shared": false
+ },
+ "payon": {
+  "cells": [
+   300,
+   360
+  ],
+  "shared": false
+ },
+ "prontera": {
+  "cells": [
+   312,
+   392
+  ],
+  "shared": false
+ },
+ "prt_mk": {
+  "cells": [
+   320,
+   320
+  ],
+  "shared": false
+ },
+ "prt_mk_g1": {
+  "cells": [
+   320,
+   320
+  ],
+  "shared": false
+ },
+ "prt_mk_g2": {
+  "cells": [
+   320,
+   320
+  ],
+  "shared": false
+ },
+ "rachel": {
+  "cells": [
+   300,
+   300
+  ],
+  "shared": false
+ },
+ "umbala": {
+  "cells": [
+   280,
+   344
+  ],
+  "shared": false
+ },
+ "veins": {
+  "cells": [
+   400,
+   400
+  ],
+  "shared": false
+ },
+ "xmas": {
+  "cells": [
+   300,
+   360
+  ],
+  "shared": false
+ },
+ "yuno": {
+  "cells": [
+   400,
+   400
+  ],
+  "shared": false
+ }
+}
