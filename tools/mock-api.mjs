@@ -9,9 +9,13 @@
 //
 // That matters more than convenience. Hand-written mock data is written by
 // someone who already knows what the UI expects, so it agrees with the UI by
-// construction and proves nothing. This is 191 vendors and 232 listings the
-// client actually sent, with the shop titles players actually typed - which
-// is how a layout meets a 26-character Korean shop name before a user does.
+// construction and proves nothing. This is 191 vendors and 206 listing rows
+// the client actually sent.
+//
+// The names in it are stand-ins - see scrub-fixture.mjs - but they are the
+// same length as the originals and keep each character's class, so the shapes
+// a layout has to survive are real: a 36-character title, umlauts, a shop
+// called '^,^', and one that is a row of stars around a kaomoji.
 //
 //   node tools/mock-api.mjs      # http://localhost:54321
 //

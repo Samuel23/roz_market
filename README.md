@@ -32,8 +32,10 @@ nothing.
 
 There is no backend requirement for UI work. `tools/mock-api.mjs` answers the
 same routes from `tools/fixture.json`, which is a real 240-second market
-recording put through the real collector - 191 vendors, 232 listings, with the
-shop titles players actually typed:
+recording put through the real collector - 191 vendors, 206 listing rows.
+The names are stand-ins (`tools/scrub-fixture.mjs`), but every one is the same
+length as the player's original and keeps each character's class, so the
+shapes a layout has to survive are the real ones:
 
 ```bash
 node tools/mock-api.mjs
