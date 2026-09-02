@@ -78,6 +78,16 @@ export type PricePoint = {
   min: number;
   avg: number;
   max: number;
+  /** Units on offer that day. Stock on the shelf, not sales. */
+  stock_offered: number;
+  /**
+   * Units actually sold that day.
+   *
+   * Real turnover, from stock decreases inside one shop session that two
+   * independent collectors both saw. Zero until somebody opens the same shop
+   * twice, which is most shops - it is a bonus signal, not the index. This
+   * field used to be sum(quantity) and therefore measured the opposite thing.
+   */
   volume: number;
   listings: number;
 };
