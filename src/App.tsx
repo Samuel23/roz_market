@@ -2,6 +2,7 @@ import { Download, Map as MapIcon, Store } from "lucide-react";
 import { HashRouter, NavLink, Route, Routes } from "react-router-dom";
 import { Home } from "./pages/Home";
 import { MapPage } from "./pages/MapPage";
+import { SupportPill } from "./components/SupportPill";
 import { WorldPicker, WorldProvider } from "./lib/world";
 
 // HashRouter, not BrowserRouter: GitHub Pages serves static files, so a hard
@@ -17,7 +18,7 @@ export default function App() {
   return (
     <WorldProvider>
     <HashRouter>
-      <div className="mx-auto flex min-h-full max-w-5xl flex-col gap-6 p-4 sm:p-6">
+      <div className="mx-auto flex min-h-full max-w-5xl flex-col gap-6 p-4 pb-20 sm:p-6 sm:pb-20">
         <header className="flex flex-wrap items-center gap-x-4 gap-y-2">
           {/* The masthead is the way home, because everyone tries it. NavLink
               rather than a plain anchor so it stays inside the hash router
@@ -88,6 +89,7 @@ export default function App() {
             Myoung-Jin.
           </p>
         </footer>
+        <SupportPill />
       </div>
     </HashRouter>
     </WorldProvider>
