@@ -1,10 +1,11 @@
-import { Bot, MapPin, User } from "lucide-react";
+import { Bot, User } from "lucide-react";
 import type { Listing } from "../lib/api";
 import { ago, isStale, itemLabel, refineClass, zeny } from "../lib/format";
 import { itemKind } from "../lib/itemtype";
 import { ItemIcon } from "./ItemIcon";
 import { ShopSign } from "./ShopSign";
 import { shopPath } from "../lib/shop";
+import { NaviCopy } from "./NaviCopy";
 import cards from "../data/cards.json";
 import slots from "../data/slots.json";
 
@@ -130,11 +131,13 @@ export function ListingRow({
           className="relative z-10"
         />
         {listing.owner_name && <span className="text-slate-500">{listing.owner_name}</span>}
-        {listing.coord_x != null && (
-          <span className="inline-flex items-center gap-1">
-            <MapPin className="h-3.5 w-3.5" />
-            {listing.map_name} {listing.coord_x},{listing.coord_y}
-          </span>
+        {listing.coord_x != null && listing.map_name && (
+          <NaviCopy
+            map={listing.map_name}
+            x={listing.coord_x}
+            y={listing.coord_y!}
+            className="relative z-10"
+          />
         )}
         <span className="ml-auto">{ago(listing.updated_at)}</span>
       </div>

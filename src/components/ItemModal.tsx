@@ -11,6 +11,7 @@ import { MapRadar } from "./MapRadar";
 import { PriceChart } from "./PriceChart";
 import { ShopSign } from "./ShopSign";
 import { shopPath } from "../lib/shop";
+import { NaviCopy } from "./NaviCopy";
 
 /**
  * One listing, opened: where to walk, and what the item has been going for.
@@ -137,9 +138,15 @@ export function ItemModal({
               <div className="flex gap-2">
                 <dt className="text-slate-500">Where</dt>
                 <dd className="text-slate-200">
-                  {listing.coord_x == null
-                    ? "position unknown - nobody has walked past it yet"
-                    : `${listing.map_name} ${listing.coord_x}, ${listing.coord_y}`}
+                  {listing.coord_x == null || !listing.map_name ? (
+                    "position unknown - nobody has walked past it yet"
+                  ) : (
+                    <NaviCopy
+                      map={listing.map_name}
+                      x={listing.coord_x}
+                      y={listing.coord_y!}
+                    />
+                  )}
                 </dd>
               </div>
               <div className="flex gap-2">

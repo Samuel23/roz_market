@@ -10,6 +10,7 @@ import {
 import { ItemModal } from "../components/ItemModal";
 import { MapRadar } from "../components/MapRadar";
 import { ShopSign } from "../components/ShopSign";
+import { NaviCopy } from "../components/NaviCopy";
 import { ago, zeny } from "../lib/format";
 import { useWorld } from "../lib/world";
 import maps from "../data/maps.json";
@@ -184,10 +185,13 @@ export function MapPage() {
               <h2 className="mb-3 flex">
                 <ShopSign title={chosen.shop_title} kind={chosen.shop_kind} variant="board" />
               </h2>
-              <p className="mb-2 text-xs text-slate-500">
+              <p className="mb-2 flex flex-wrap items-center gap-x-1 text-xs text-slate-500">
                 {chosen.owner_name ? `${chosen.owner_name} - ` : ""}
-                {chosen.vendor_kind === "assistant" ? "offline" : "in person"} -{" "}
-                {chosen.coord_x}, {chosen.coord_y} - seen {ago(chosen.last_seen)}
+                {chosen.vendor_kind === "assistant" ? "offline" : "in person"} -
+                {chosen.coord_x != null && (
+                  <NaviCopy map={map} x={chosen.coord_x} y={chosen.coord_y!} />
+                )}
+                - seen {ago(chosen.last_seen)}
               </p>
               {chosen.shop_kind === "buy" && (
                 <p className="mb-2 text-xs text-amber-300/90">
