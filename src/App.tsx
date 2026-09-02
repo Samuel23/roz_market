@@ -39,9 +39,12 @@ export default function App() {
             </NavLink>
             {/* The index only has what somebody walked past, so the way to
                 make it better belongs on the page rather than in a README
-                nobody arrives at. */}
+                nobody arrives at. Points at the how-to rather than straight at
+                the download: the release page hands you a .exe with no
+                explanation of what the box does or how to untick it, and that
+                is the wrong first thing to show someone. */}
             <a
-              href="https://github.com/Samuel23/roz_monitor/releases/latest"
+              href="https://github.com/Samuel23/roz_monitor/blob/main/MARKET_CONTRIBUTING.md"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm text-slate-400 transition hover:bg-slate-800/60 hover:text-slate-200"
