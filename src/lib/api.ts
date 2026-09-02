@@ -30,7 +30,18 @@ export type Listing = {
   coord_y: number | null;
   updated_at: string;
   world: string;
+  /**
+   * Which way the shop trades, and therefore what the price means.
+   *
+   * "sell" is a vending shop and the price is an ask - what you would pay.
+   * "buy" is a buying store and the price is a bid - what they would pay you.
+   * They are not comparable: bids run at a fraction of asks, so the index
+   * asks for asks and a caller who wants bids says so.
+   */
+  shop_kind: ShopKind;
 };
+
+export type ShopKind = "sell" | "buy";
 
 export type World = {
   world: string;
@@ -62,6 +73,8 @@ export type Vendor = {
   shop_title: string | null;
   owner_name: string | null;
   vendor_kind: "player" | "assistant" | null;
+  /** Null until a sign for this shop has been in someone's view. */
+  shop_kind: ShopKind | null;
   map_name: string | null;
   coord_x: number | null;
   coord_y: number | null;
@@ -78,6 +91,8 @@ export type Query = {
   opt_id?: number;
   map?: string;
   world?: string;
+  /** Omitted means asks only. "any" is for looking at one shop. */
+  kind?: ShopKind | "any";
   sort?: "price_asc" | "price_desc" | "time_desc";
   limit?: number;
   offset?: number;
@@ -131,7 +146,8 @@ export async function listVendors(
   const u = new URL(`${URL_BASE}/rest/v1/vendors`);
   u.searchParams.set(
     "select",
-    "world,account_id,shop_title,owner_name,vendor_kind,map_name,coord_x,coord_y,last_seen",
+    "world,account_id,shop_title,owner_name,vendor_kind,shop_kind," +
+      "map_name,coord_x,coord_y,last_seen",
   );
   u.searchParams.set("map_name", `eq.${map}`);
   u.searchParams.set("world", `eq.${world}`);

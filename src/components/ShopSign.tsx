@@ -1,4 +1,5 @@
 import { useState } from "react";
+import type { ShopKind } from "../lib/api";
 
 /**
  * A shop's title, drawn the way the client draws it.
@@ -22,15 +23,17 @@ import { useState } from "react";
  *   shop-sell.png   data/texture/유저인터페이스/shop.bmp        a zeny bag
  *   shop-buy.png    data/texture/유저인터페이스/buyingshop.bmp  a bundle of goods
  *
- * Everything in this index is a vending shop, because every path that creates
- * a vendor row starts at a vending packet - the 0x0131 sign, the 0x0b3d and
- * 0x0b62 stock lists, the 0x0b64 search answer. Buying stores announce
- * themselves on 0x0814 and are not collected, so `kind` defaults to "sell"
- * from fact rather than from assumption, and the other icon is here ready for
- * the day they are.
+ * Which icon shows is not decoration. A buying store's prices are bids, not
+ * asks - two of them were bidding 8,000z for Rough Oridecon on a map whose
+ * cheapest ask was 18,999z - so the board is the reader's warning that a
+ * number they are looking at is what somebody will pay them, not what they
+ * would pay.
+ *
+ * `kind` is null for a shop no collector has walked past, because only the
+ * sign says which way a shop trades and a search result does not carry one.
+ * Null renders as "sell", which is true of all but three of the 189 shops on
+ * the market map, and stops being a guess the moment anyone walks past it.
  */
-
-export type ShopKind = "sell" | "buy";
 
 const LABEL: Record<ShopKind, string> = {
   sell: "vending shop - the owner is selling",
@@ -43,17 +46,19 @@ function iconUrl(kind: ShopKind): string {
 
 export function ShopSign({
   title,
-  kind = "sell",
+  kind: rawKind = "sell",
   variant = "row",
   className = "",
 }: {
   title: string | null | undefined;
-  kind?: ShopKind;
+  /** Null means no sign has been seen yet; almost every shop sells. */
+  kind?: ShopKind | null;
   /** "row" in a list of listings, "board" as the heading over a shop. */
   variant?: "row" | "board";
   className?: string;
 }) {
   const [failed, setFailed] = useState(false);
+  const kind: ShopKind = rawKind ?? "sell";
   const board = variant === "board";
   const px = board ? 24 : 18;
 

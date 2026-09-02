@@ -47,7 +47,11 @@ export function MapPage() {
       listVendors(map, world, stop.signal).catch(() => [] as Vendor[]),
       // Newest first, so a map with more listings than one page keeps the
       // most recently confirmed ones.
-      searchMarket({ map, world, sort: "time_desc", limit: 200 }, stop.signal)
+      // "any": on a map you are looking at particular shops, and a buying
+      // store's stock is the whole point of clicking its pin. The search page
+      // asks for asks; here both belong, labelled.
+      searchMarket({ map, world, kind: "any", sort: "time_desc", limit: 200 },
+                   stop.signal)
         .then((r) => r.rows)
         .catch(() => [] as Listing[]),
     ])
@@ -130,13 +134,19 @@ export function MapPage() {
           ) : (
             <>
               <h2 className="mb-3 flex">
-                <ShopSign title={chosen.shop_title} variant="board" />
+                <ShopSign title={chosen.shop_title} kind={chosen.shop_kind} variant="board" />
               </h2>
               <p className="mb-2 text-xs text-slate-500">
                 {chosen.owner_name ? `${chosen.owner_name} - ` : ""}
                 {chosen.vendor_kind === "assistant" ? "offline" : "in person"} -{" "}
                 {chosen.coord_x}, {chosen.coord_y} - seen {ago(chosen.last_seen)}
               </p>
+              {chosen.shop_kind === "buy" && (
+                <p className="mb-2 text-xs text-amber-300/90">
+                  This is a buying store. These are the prices it will pay you,
+                  not prices you can buy at.
+                </p>
+              )}
               {stock.length === 0 ? (
                 <p className="text-sm text-slate-400">
                   Nobody has opened this shop yet, so the index knows where it is
@@ -158,7 +168,10 @@ export function MapPage() {
                           <span className="ml-1 text-xs text-slate-500">x{l.quantity}</span>
                         )}
                       </span>
-                      <span className="font-mono text-amber-200">{zeny(l.price)}</span>
+                      <span className="font-mono text-amber-200">
+                        {chosen.shop_kind === "buy" ? "pays " : ""}
+                        {zeny(l.price)}
+                      </span>
                     </button>
                   ))}
                 </div>

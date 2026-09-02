@@ -64,6 +64,7 @@ for (const obs of fixture.observations) {
         shop_title: obs.vendor.shop_title,
         owner_name: obs.vendor.owner_name,
         vendor_kind: obs.vendor.vendor_kind,
+        shop_kind: obs.vendor.shop_kind ?? "sell",
         map_name: obs.vendor.map_name,
         coord_x: obs.vendor.coord_x,
         coord_y: obs.vendor.coord_y,
@@ -109,6 +110,9 @@ function search(p) {
   const map = p.get("map") || null;
   const world = p.get("world") || null;
   const sort = p.get("sort") ?? "price_asc";
+  // Asks unless asked otherwise, the same default the real function has: a
+  // buying store's price is a bid and belongs nowhere near "cheapest".
+  const kind = p.get("kind") ?? "sell";
   const limit = Math.min(200, Number(p.get("limit")) || 50);
   const offset = Number(p.get("offset")) || 0;
 
@@ -125,6 +129,7 @@ function search(p) {
     // Everything here is Skadi, so asking for another world correctly
     // returns nothing - the same as the real API before anyone plays there.
     if (world && world !== WORLD) return false;
+    if (kind !== "any" && (l.shop_kind ?? "sell") !== kind) return false;
     return true;
   });
 
@@ -202,6 +207,7 @@ createServer((req, res) => {
       shop_title: v.shop_title,
       owner_name: v.owner_name,
       vendor_kind: v.vendor_kind,
+      shop_kind: v.shop_kind ?? null,
       map_name: v.map_name,
       coord_x: v.coord_x,
       coord_y: v.coord_y,

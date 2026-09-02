@@ -116,7 +116,7 @@ export function ItemModal({
               <div className="flex gap-2">
                 <dt className="text-slate-500">Shop</dt>
                 <dd className="min-w-0">
-                  <ShopSign title={listing.shop_title} />
+                  <ShopSign title={listing.shop_title} kind={listing.shop_kind} />
                 </dd>
               </div>
               {listing.owner_name && (

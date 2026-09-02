@@ -104,7 +104,7 @@ export function ListingRow({
             <User className="h-3.5 w-3.5" /> live
           </span>
         )}
-        <ShopSign title={listing.shop_title} />
+        <ShopSign title={listing.shop_title} kind={listing.shop_kind} />
         {listing.owner_name && <span className="text-slate-500">{listing.owner_name}</span>}
         {listing.coord_x != null && (
           <span className="inline-flex items-center gap-1">
