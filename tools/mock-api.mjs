@@ -81,6 +81,16 @@ const LISTINGS = [...rows.values()].map(({ row, observed_at }) => ({
   updated_at: new Date((observed_at + shift) * 1000).toISOString(),
 }));
 
+// The fixture was recorded before the index knew worlds existed, on Skadi.
+// Stamping it here rather than rewriting the file keeps the recording as it
+// was captured and still exercises the world plumbing the real API now has.
+const WORLD = "skadi";
+const WORLDS = [
+  { world: "skadi", label: "Skadi (EU)",  region: "EU",  hostname: "eu-roz-1.mygnjoy.com",  sort: 1 },
+  { world: "odin",  label: "Odin (SEA)",  region: "SEA", hostname: "sea-roz-1.mygnjoy.com", sort: 2 },
+  { world: "loki",  label: "Loki (SEA)",  region: "SEA", hostname: "sea-roz-2.mygnjoy.com", sort: 3 },
+];
+
 // The vendors walked past but never priced still belong on the map page.
 const PLACED = fixture.vendors.filter((v) => v.coord_x !== null);
 
@@ -97,6 +107,7 @@ function search(p) {
   const cardId = Number(p.get("card_id")) || null;
   const optId = Number(p.get("opt_id")) || null;
   const map = p.get("map") || null;
+  const world = p.get("world") || null;
   const sort = p.get("sort") ?? "price_asc";
   const limit = Math.min(200, Number(p.get("limit")) || 50);
   const offset = Number(p.get("offset")) || 0;
@@ -111,6 +122,9 @@ function search(p) {
     if (cardId && !l.cards.includes(cardId)) return false;
     if (optId && !l.random_options.some((o) => o.index === optId)) return false;
     if (map && l.map_name !== map) return false;
+    // Everything here is Skadi, so asking for another world correctly
+    // returns nothing - the same as the real API before anyone plays there.
+    if (world && world !== WORLD) return false;
     return true;
   });
 
@@ -118,7 +132,8 @@ function search(p) {
   else if (sort === "time_desc") hits.sort((a, b) => b.updated_at.localeCompare(a.updated_at));
   else hits.sort((a, b) => a.price - b.price);
 
-  return { rows: hits.slice(offset, offset + limit), total: hits.length, limit, offset };
+  const rows = hits.slice(offset, offset + limit).map((l) => ({ ...l, world: WORLD }));
+  return { rows, total: hits.length, limit, offset };
 }
 
 // A plausible 30-day series so the chart can be looked at before the real
@@ -162,11 +177,27 @@ createServer((req, res) => {
   } else if (url.pathname.endsWith("/price-history")) {
     const itemId = Number(url.searchParams.get("item_id"));
     const days = Math.min(365, Number(url.searchParams.get("days")) || 30);
-    body = { item_id: itemId, days, points: history(itemId, days) };
+    const world = (url.searchParams.get("world") ?? "").trim();
+    if (!world) {
+      // The real function refuses this, because a chart across three
+      // economies is a line through numbers that were never true anywhere.
+      res.writeHead(400, headers);
+      res.end(JSON.stringify({ error: "world is required" }));
+      return;
+    }
+    body = {
+      item_id: itemId, world, days,
+      points: world === WORLD ? history(itemId, days) : [],
+    };
+  } else if (url.pathname.endsWith("/rest/v1/worlds")) {
+    body = WORLDS;
   } else if (url.pathname.endsWith("/rest/v1/vendors")) {
     // PostgREST's filter syntax, only as far as the map page uses it.
     const eq = (url.searchParams.get("map_name") ?? "").replace(/^eq\./, "");
-    body = PLACED.filter((v) => !eq || v.map_name === eq).map((v) => ({
+    const wq = (url.searchParams.get("world") ?? "").replace(/^eq\./, "");
+    body = PLACED.filter((v) => (!eq || v.map_name === eq)
+                             && (!wq || wq === WORLD)).map((v) => ({
+      world: WORLD,
       account_id: v.account_id,
       shop_title: v.shop_title,
       owner_name: v.owner_name,

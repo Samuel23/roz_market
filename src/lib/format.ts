@@ -35,9 +35,18 @@ export function isStale(iso: string, hours = 6): boolean {
   return Number.isFinite(then) && Date.now() - then > hours * 3600_000;
 }
 
-/** "+7 Composite Bow" - the refine goes in front, the way the game writes it. */
-export function itemLabel(name: string, refine: number): string {
-  return refine > 0 ? `+${refine} ${name}` : name;
+/**
+ * "+7 Composite Bow [4]" - the way the game writes it: refine in front, slot
+ * count behind.
+ *
+ * The slot count is not in the listing. The server never sends it - it is
+ * client-side data looked up when the name is drawn - so it comes from a table
+ * extracted from the client and shipped with the page. Items with no slots get
+ * nothing, not "[0]", which is also what the game does.
+ */
+export function itemLabel(name: string, refine: number, slots = 0): string {
+  const base = refine > 0 ? `+${refine} ${name}` : name;
+  return slots > 0 ? `${base} [${slots}]` : base;
 }
 
 /** Colour the refine the way the client does: unremarkable up to +6, notable

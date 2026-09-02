@@ -2,6 +2,7 @@ import { Map as MapIcon, Store } from "lucide-react";
 import { HashRouter, NavLink, Route, Routes } from "react-router-dom";
 import { Home } from "./pages/Home";
 import { MapPage } from "./pages/MapPage";
+import { WorldPicker, WorldProvider } from "./lib/world";
 
 // HashRouter, not BrowserRouter: GitHub Pages serves static files, so a hard
 // refresh on /map would ask the server for a file that does not exist and get
@@ -14,6 +15,7 @@ export default function App() {
       : "text-slate-400 hover:bg-slate-800/60 hover:text-slate-200");
 
   return (
+    <WorldProvider>
     <HashRouter>
       <div className="mx-auto flex min-h-full max-w-5xl flex-col gap-6 p-4 sm:p-6">
         <header className="flex flex-wrap items-center gap-x-4 gap-y-2">
@@ -28,6 +30,7 @@ export default function App() {
               <MapIcon className="h-4 w-4" /> Map
             </NavLink>
           </nav>
+          <WorldPicker />
         </header>
 
         <main className="flex-1">
@@ -45,5 +48,6 @@ export default function App() {
         </footer>
       </div>
     </HashRouter>
+    </WorldProvider>
   );
 }

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { searchMarket, configured, type Listing, type Query } from "../lib/api";
+import { useWorld } from "../lib/world";
 import { Filters } from "../components/Filters";
 import { ItemModal } from "../components/ItemModal";
 import { ListingRow } from "../components/ListingRow";
@@ -8,6 +9,7 @@ import { SearchBar } from "../components/SearchBar";
 const PAGE = 50;
 
 export function Home() {
+  const { world } = useWorld();
   const [text, setText] = useState("");
   const [query, setQuery] = useState<Query>({ sort: "price_asc", limit: PAGE });
   const [rows, setRows] = useState<Listing[]>([]);
@@ -33,7 +35,7 @@ export function Home() {
     const stop = new AbortController();
     setBusy(true);
     setError(null);
-    searchMarket(query, stop.signal)
+    searchMarket({ ...query, world }, stop.signal)
       .then((res) => {
         setRows(res.rows);
         setTotal(res.total);
@@ -43,7 +45,9 @@ export function Home() {
       })
       .finally(() => setBusy(false));
     return () => stop.abort();
-  }, [query]);
+    // world is part of the query in every practical sense: changing server
+    // must refetch, not filter what is already on screen.
+  }, [query, world]);
 
   if (!configured) {
     return (

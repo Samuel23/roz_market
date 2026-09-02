@@ -9,6 +9,7 @@ import {
 import { ItemModal } from "../components/ItemModal";
 import { MapRadar } from "../components/MapRadar";
 import { ago, zeny } from "../lib/format";
+import { useWorld } from "../lib/world";
 import maps from "../data/maps.json";
 
 const MAPS = Object.keys(maps as Record<string, unknown>).sort();
@@ -28,6 +29,7 @@ const DEFAULT_MAP = "prt_mk_g1";
  * in eight, and would look complete while doing it.
  */
 export function MapPage() {
+  const { world } = useWorld();
   const [map, setMap] = useState(DEFAULT_MAP);
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [rows, setRows] = useState<Listing[]>([]);
@@ -41,10 +43,10 @@ export function MapPage() {
     setBusy(true);
     setPicked(null);
     Promise.all([
-      listVendors(map, stop.signal).catch(() => [] as Vendor[]),
+      listVendors(map, world, stop.signal).catch(() => [] as Vendor[]),
       // Newest first, so a map with more listings than one page keeps the
       // most recently confirmed ones.
-      searchMarket({ map, sort: "time_desc", limit: 200 }, stop.signal)
+      searchMarket({ map, world, sort: "time_desc", limit: 200 }, stop.signal)
         .then((r) => r.rows)
         .catch(() => [] as Listing[]),
     ])
@@ -54,7 +56,7 @@ export function MapPage() {
       })
       .finally(() => setBusy(false));
     return () => stop.abort();
-  }, [map]);
+  }, [map, world]);
 
   const priced = useMemo(() => {
     const by = new Map<number, { count: number; cheapest: number }>();

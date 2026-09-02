@@ -29,6 +29,15 @@ export type Listing = {
   coord_x: number | null;
   coord_y: number | null;
   updated_at: string;
+  world: string;
+};
+
+export type World = {
+  world: string;
+  label: string;
+  region: string | null;
+  hostname: string | null;
+  sort: number;
 };
 
 export type SearchResult = {
@@ -48,6 +57,7 @@ export type PricePoint = {
 };
 
 export type Vendor = {
+  world: string;
   account_id: number;
   shop_title: string | null;
   owner_name: string | null;
@@ -67,6 +77,7 @@ export type Query = {
   card_id?: number;
   opt_id?: number;
   map?: string;
+  world?: string;
   sort?: "price_asc" | "price_desc" | "time_desc";
   limit?: number;
   offset?: number;
@@ -113,15 +124,17 @@ export async function searchMarket(
  */
 export async function listVendors(
   map: string,
+  world: string,
   signal?: AbortSignal,
 ): Promise<Vendor[]> {
   if (!configured) throw new Error("not configured");
   const u = new URL(`${URL_BASE}/rest/v1/vendors`);
   u.searchParams.set(
     "select",
-    "account_id,shop_title,owner_name,vendor_kind,map_name,coord_x,coord_y,last_seen",
+    "world,account_id,shop_title,owner_name,vendor_kind,map_name,coord_x,coord_y,last_seen",
   );
   u.searchParams.set("map_name", `eq.${map}`);
+  u.searchParams.set("world", `eq.${world}`);
   u.searchParams.set("coord_x", "not.is.null");
   u.searchParams.set("order", "last_seen.desc");
   u.searchParams.set("limit", "1000");
@@ -130,17 +143,42 @@ export async function listVendors(
   return res.json();
 }
 
+/**
+ * A day's high, low and mean for one item, on ONE world.
+ *
+ * The world is required rather than optional. Skadi, Odin and Loki are three
+ * separate economies that share nothing but an item table, so a chart drawn
+ * across all of them is a line through numbers that were never true anywhere.
+ */
 export async function priceHistory(
   itemId: number,
+  world: string,
   days = 30,
   signal?: AbortSignal,
 ): Promise<PricePoint[]> {
   if (!configured) throw new Error("not configured");
-  const res = await fetch(url("price-history", { item_id: itemId, days }), {
+  const res = await fetch(url("price-history", { item_id: itemId, world, days }), {
     headers: headers(),
     signal,
   });
   if (!res.ok) throw new Error(`history failed (${res.status})`);
   const body = await res.json();
   return body.points ?? [];
+}
+
+/**
+ * The worlds the index knows about.
+ *
+ * Read from the table rather than hardcoded, because a world is data: the
+ * server can add one, and the addresses that identify them are Cloudflare's
+ * and can be renumbered underneath.
+ */
+export async function listWorlds(signal?: AbortSignal): Promise<World[]> {
+  if (!configured) throw new Error("not configured");
+  const u = new URL(`${URL_BASE}/rest/v1/worlds`);
+  u.searchParams.set("select", "world,label,region,hostname,sort");
+  u.searchParams.set("order", "sort.asc");
+  const res = await fetch(u.toString(), { headers: headers(), signal });
+  if (!res.ok) throw new Error(`worlds failed (${res.status})`);
+  return res.json();
 }

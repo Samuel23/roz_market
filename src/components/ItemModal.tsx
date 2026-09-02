@@ -2,6 +2,9 @@ import { X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { priceHistory, type Listing, type PricePoint } from "../lib/api";
 import { ago, itemLabel, zeny } from "../lib/format";
+import slots from "../data/slots.json";
+
+const SLOTS = slots as Record<string, number>;
 import { MapRadar } from "./MapRadar";
 import { PriceChart } from "./PriceChart";
 
@@ -26,13 +29,16 @@ export function ItemModal({
     const stop = new AbortController();
     setPoints(null);
     setFailed(false);
-    priceHistory(listing.item_id, 30, stop.signal)
+    // The listing's own world, not whatever the picker says. Opening a
+    // Skadi listing and being shown Odin's price history would be worse than
+    // showing none.
+    priceHistory(listing.item_id, listing.world, 30, stop.signal)
       .then(setPoints)
       .catch((e) => {
         if (e.name !== "AbortError") setFailed(true);
       });
     return () => stop.abort();
-  }, [listing.item_id]);
+  }, [listing.item_id, listing.world]);
 
   useEffect(() => {
     function key(e: KeyboardEvent) {
@@ -55,7 +61,7 @@ export function ItemModal({
         <div className="flex items-start justify-between gap-4 border-b border-slate-700 p-4">
           <div>
             <h2 className="text-lg font-medium text-slate-100">
-              {itemLabel(listing.item_name, listing.refine)}
+              {itemLabel(listing.item_name, listing.refine, SLOTS[listing.item_id])}
             </h2>
             <p className="mt-0.5 text-sm text-slate-400">
               <span className="font-mono text-amber-200">{zeny(listing.price)}</span>

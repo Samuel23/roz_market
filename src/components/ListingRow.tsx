@@ -2,8 +2,12 @@ import { Bot, MapPin, User } from "lucide-react";
 import type { Listing } from "../lib/api";
 import { ago, isStale, itemLabel, refineClass, zeny } from "../lib/format";
 import cards from "../data/cards.json";
+import slots from "../data/slots.json";
 
 const CARDS = cards as Record<string, string>;
+// Only slotted items are in here - about 1,400 of 31,000 - so a miss means
+// "no slots", not "unknown".
+const SLOTS = slots as Record<string, number>;
 
 function cardName(id: number): string {
   return CARDS[String(id)] ?? `#${id}`;
@@ -36,7 +40,7 @@ export function ListingRow({
     >
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         <span className={"font-medium " + refineClass(listing.refine)}>
-          {itemLabel(listing.item_name, listing.refine)}
+          {itemLabel(listing.item_name, listing.refine, SLOTS[listing.item_id])}
           {listing.quantity > 1 && (
             <span className="ml-2 text-xs text-slate-400">x{listing.quantity}</span>
           )}
