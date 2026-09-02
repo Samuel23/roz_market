@@ -1,5 +1,11 @@
 import { Search, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import slots from "../data/slots.json";
+import { itemLabel } from "../lib/format";
+
+// Only slotted items are in here, so a miss means "no slots", not
+// "unknown". Already loaded for the listing rows, so it costs nothing here.
+const SLOTS = slots as Record<string, number>;
 
 type Suggestion = { id: number; name: string };
 
@@ -103,7 +109,7 @@ export function SearchBar({
                   setOpen(false);
                 }}
               >
-                <span>{s.name}</span>
+                <span>{itemLabel(s.name, 0, SLOTS[s.id])}</span>
                 <span className="font-mono text-[11px] text-slate-500">{s.id}</span>
               </button>
             </li>
