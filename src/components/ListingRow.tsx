@@ -2,6 +2,7 @@ import { Bot, MapPin, User } from "lucide-react";
 import type { Listing } from "../lib/api";
 import { ago, isStale, itemLabel, refineClass, zeny } from "../lib/format";
 import { itemKind } from "../lib/itemtype";
+import { ItemIcon } from "./ItemIcon";
 import cards from "../data/cards.json";
 import slots from "../data/slots.json";
 
@@ -41,7 +42,8 @@ export function ListingRow({
       }
     >
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-        <span className={"font-medium " + refineClass(listing.refine)}>
+        <span className={"inline-flex items-center gap-2 font-medium " + refineClass(listing.refine)}>
+          <ItemIcon itemId={listing.item_id} size={22} />
           {itemLabel(listing.item_name, listing.refine, SLOTS[listing.item_id])}
           {listing.quantity > 1 && (
             <span className="ml-2 text-xs text-slate-400">x{listing.quantity}</span>

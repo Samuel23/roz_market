@@ -1,10 +1,12 @@
-import { X } from "lucide-react";
+import { ExternalLink, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { priceHistory, type Listing, type PricePoint } from "../lib/api";
 import { ago, itemLabel, zeny } from "../lib/format";
 import slots from "../data/slots.json";
 
 const SLOTS = slots as Record<string, number>;
+import { itemPageUrl } from "../lib/midgard";
+import { ItemIcon } from "./ItemIcon";
 import { MapRadar } from "./MapRadar";
 import { PriceChart } from "./PriceChart";
 
@@ -59,7 +61,9 @@ export function ItemModal({
     >
       <div className="w-full max-w-3xl rounded-xl border border-slate-700 bg-slate-900 shadow-2xl">
         <div className="flex items-start justify-between gap-4 border-b border-slate-700 p-4">
-          <div>
+          <div className="flex items-start gap-3">
+            <ItemIcon itemId={listing.item_id} size={40} className="mt-0.5" />
+            <div>
             <h2 className="text-lg font-medium text-slate-100">
               {itemLabel(listing.item_name, listing.refine, SLOTS[listing.item_id])}
             </h2>
@@ -68,6 +72,19 @@ export function ItemModal({
               {listing.quantity > 1 && <> - {listing.quantity} in stock</>} - seen{" "}
               {ago(listing.updated_at)}
             </p>
+            {/* What this page deliberately does not try to be: an item
+                database. Stats, drops and effects live on MidgardHub, which
+                keys items by the same ids the game sends us. */}
+            <a
+              href={itemPageUrl(listing.item_id)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-1 inline-flex items-center gap-1 text-xs text-sky-300 hover:text-sky-200 hover:underline"
+            >
+              Item info on MidgardHub
+              <ExternalLink className="h-3 w-3" />
+            </a>
+            </div>
           </div>
           <button
             type="button"
