@@ -8,6 +8,7 @@ import {
   type Vendor,
 } from "../lib/api";
 import { ItemModal } from "../components/ItemModal";
+import { ListingRow } from "../components/ListingRow";
 import { MapRadar } from "../components/MapRadar";
 import { ShopSign } from "../components/ShopSign";
 import { NaviCopy } from "../components/NaviCopy";
@@ -206,26 +207,19 @@ export function MapPage() {
                   but not what is in it.
                 </p>
               ) : (
-                <div className="space-y-1">
+                // The same row the search page draws, minus the shop it came
+                // from - the sign above already says that. Which means a
+                // shop's stock gets the item's icon, its slots, its refine,
+                // its cards and its random options, and opens the same panel
+                // with the link out to MidgardHub.
+                <div className="space-y-2">
                   {stock.map((l) => (
-                    <button
+                    <ListingRow
                       key={l.listing_id}
-                      type="button"
-                      onClick={() => setOpen(l)}
-                      className="flex w-full items-baseline justify-between gap-4 rounded border border-slate-800 px-3 py-1.5 text-left text-sm hover:border-slate-600"
-                    >
-                      <span className="text-slate-200">
-                        {l.refine > 0 ? `+${l.refine} ` : ""}
-                        {l.item_name}
-                        {l.quantity > 1 && (
-                          <span className="ml-1 text-xs text-slate-500">x{l.quantity}</span>
-                        )}
-                      </span>
-                      <span className="font-mono text-amber-200">
-                        {chosen.shop_kind === "buy" ? "pays " : ""}
-                        {zeny(l.price)}
-                      </span>
-                    </button>
+                      listing={l}
+                      onOpen={setOpen}
+                      showShop={false}
+                    />
                   ))}
                 </div>
               )}

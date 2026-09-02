@@ -29,9 +29,18 @@ function cardName(id: number): string {
 export function ListingRow({
   listing,
   onOpen,
+  showShop = true,
 }: {
   listing: Listing;
   onOpen: (l: Listing) => void;
+  /**
+   * Whether to name the shop this came from.
+   *
+   * False inside one shop's own panel, where the sign is already the heading
+   * over the list and repeating it on every row - with the same owner and the
+   * same coordinates - is noise. Everything about the *item* stays.
+   */
+  showShop?: boolean;
 }) {
   const stale = isStale(listing.updated_at);
   const kind = itemKind(listing.item_id, listing.item_type);
@@ -70,7 +79,13 @@ export function ListingRow({
             <span className="ml-2 text-xs text-slate-400">x{listing.quantity}</span>
           )}
         </span>
-        <span className="font-mono text-amber-200">{zeny(listing.price)}</span>
+        <span className="font-mono text-amber-200">
+          {/* A buying store's price is what it pays you, not what you pay. */}
+          {listing.shop_kind === "buy" && (
+            <span className="mr-1 text-xs font-normal text-amber-300/70">pays</span>
+          )}
+          {zeny(listing.price)}
+        </span>
       </div>
 
       {(kind.cls || kind.sub) && (
@@ -115,23 +130,28 @@ export function ListingRow({
       )}
 
       <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-400">
-        {listing.vendor_kind === "assistant" ? (
-          <span className="inline-flex items-center gap-1" title="Store Assistant - vending offline">
-            <Bot className="h-3.5 w-3.5" /> offline
-          </span>
-        ) : (
-          <span className="inline-flex items-center gap-1" title="a player vending in person">
-            <User className="h-3.5 w-3.5" /> live
-          </span>
+        {showShop &&
+          (listing.vendor_kind === "assistant" ? (
+            <span className="inline-flex items-center gap-1" title="Store Assistant - vending offline">
+              <Bot className="h-3.5 w-3.5" /> offline
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1" title="a player vending in person">
+              <User className="h-3.5 w-3.5" /> live
+            </span>
+          ))}
+        {showShop && (
+          <ShopSign
+            title={listing.shop_title}
+            kind={listing.shop_kind}
+            to={shop}
+            className="relative z-10"
+          />
         )}
-        <ShopSign
-          title={listing.shop_title}
-          kind={listing.shop_kind}
-          to={shop}
-          className="relative z-10"
-        />
-        {listing.owner_name && <span className="text-slate-500">{listing.owner_name}</span>}
-        {listing.coord_x != null && listing.map_name && (
+        {showShop && listing.owner_name && (
+          <span className="text-slate-500">{listing.owner_name}</span>
+        )}
+        {showShop && listing.coord_x != null && listing.map_name && (
           <NaviCopy
             map={listing.map_name}
             x={listing.coord_x}
