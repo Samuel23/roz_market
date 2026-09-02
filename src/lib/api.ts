@@ -39,6 +39,21 @@ export type Listing = {
    * asks for asks and a caller who wants bids says so.
    */
   shop_kind: ShopKind;
+  /**
+   * How well attested this price is.
+   *
+   * "corroborated" means two collectors on different networks reported the
+   * same shop slot at the same price; "single" means one did and it was
+   * published anyway, because while there are barely any contributors a rule
+   * that needed two would publish nothing at all.
+   *
+   * Shown rather than hidden. The page already stakes its credibility on
+   * printing an age for every row - printing how many people saw it is the
+   * same promise, and it makes a lie visible to the reader even when it gets
+   * through.
+   */
+  confidence: "corroborated" | "single";
+  reports: number;
 };
 
 export type ShopKind = "sell" | "buy";

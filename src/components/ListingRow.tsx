@@ -1,4 +1,4 @@
-import { Bot, User } from "lucide-react";
+import { Bot, User, Users } from "lucide-react";
 import type { Listing } from "../lib/api";
 import { ago, isStale, itemLabel, refineClass, zeny } from "../lib/format";
 import { itemKind } from "../lib/itemtype";
@@ -159,7 +159,27 @@ export function ListingRow({
             className="relative z-10"
           />
         )}
-        <span className="ml-auto">{ago(listing.updated_at)}</span>
+        {/*
+          How many people saw this, next to how long ago - the two things that
+          say how much a number is worth. A single-source price is not marked
+          as suspect, because at this population almost every price is one;
+          it is marked as what it is, so a second report visibly means more.
+        */}
+        <span
+          className={
+            "ml-auto inline-flex items-center gap-1 " +
+            (listing.confidence === "corroborated" ? "text-emerald-300/80" : "")
+          }
+          title={
+            listing.confidence === "corroborated"
+              ? `${listing.reports} independent collectors reported this`
+              : "one collector reported this"
+          }
+        >
+          <Users className="h-3.5 w-3.5" />
+          {listing.reports > 1 ? `${listing.reports} reports` : "1 report"}
+        </span>
+        <span>{ago(listing.updated_at)}</span>
       </div>
     </div>
   );

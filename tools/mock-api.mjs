@@ -65,6 +65,10 @@ for (const obs of fixture.observations) {
         owner_name: obs.vendor.owner_name,
         vendor_kind: obs.vendor.vendor_kind,
         shop_kind: obs.vendor.shop_kind ?? "sell",
+        // The fixture predates claims, so every row is what a first sighting
+        // looks like: published, and honest about being one person's word.
+        confidence: "single",
+        reports: 1,
         map_name: obs.vendor.map_name,
         coord_x: obs.vendor.coord_x,
         coord_y: obs.vendor.coord_y,
