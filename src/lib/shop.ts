@@ -1,3 +1,20 @@
+import type { ShopKind } from "./api";
+
+/**
+ * The client's own board icon for a shop, by which way it trades.
+ *
+ * Extracted from data.grf by packet_probe/build_shop_icons.py: shop.bmp (a
+ * zeny bag) for vending, buyingshop.bmp (a bundle of goods) for a buying
+ * store. 24x24 pixel art - draw it with image-rendering: pixelated, or it
+ * turns into a photograph of an icon.
+ *
+ * Null means no sign for the shop has been seen yet, which is almost always
+ * a vending shop.
+ */
+export function shopIconUrl(kind: ShopKind | null | undefined): string {
+  return `${import.meta.env.BASE_URL}ui/shop-${kind ?? "sell"}.png`;
+}
+
 /**
  * The link to one shop's whole stock.
  *

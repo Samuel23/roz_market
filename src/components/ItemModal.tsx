@@ -111,6 +111,7 @@ export function ItemModal({
                   y: listing.coord_y,
                   label: listing.shop_title ?? undefined,
                   active: true,
+                  kind: listing.shop_kind,
                 },
               ]}
             />

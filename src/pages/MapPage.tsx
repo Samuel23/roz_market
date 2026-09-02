@@ -137,6 +137,7 @@ export function MapPage() {
         : `${v.shop_title ?? "(untitled)"} - no prices collected yet`,
       active: v.account_id === picked,
       dim: !p,
+      kind: v.shop_kind,
     };
   });
 

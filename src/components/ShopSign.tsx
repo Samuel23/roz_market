@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import type { ShopKind } from "../lib/api";
+import { shopIconUrl } from "../lib/shop";
 
 /**
  * A shop's title, drawn the way the client draws it.
@@ -40,10 +41,6 @@ const LABEL: Record<ShopKind, string> = {
   sell: "vending shop - the owner is selling",
   buy: "buying store - the owner is buying",
 };
-
-function iconUrl(kind: ShopKind): string {
-  return `${import.meta.env.BASE_URL}ui/shop-${kind}.png`;
-}
 
 export function ShopSign({
   title,
@@ -87,7 +84,7 @@ export function ShopSign({
     >
       {!failed && (
         <img
-          src={iconUrl(kind)}
+          src={shopIconUrl(kind)}
           alt=""
           width={px}
           height={px}
