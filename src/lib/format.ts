@@ -56,3 +56,39 @@ export function refineClass(refine: number): string {
   if (refine >= 7) return "text-emerald-300";
   return "text-slate-300";
 }
+
+/**
+ * How long an offline Store Assistant has left, phrased the way the game
+ * phrases it under the shop's stock list.
+ *
+ * Only assistants have a clock - a player vending in person stands there
+ * until they log off - so `null` in, `null` out, and the caller shows
+ * nothing rather than an empty label.
+ *
+ * Rounded to the unit that matters at the scale being shown: at three hours
+ * nobody cares about the seconds, and under a minute the number is changing
+ * faster than the page reads it. A rental that has already run out reports
+ * itself as expired instead of counting into the negatives - the shop is
+ * gone from the game whether or not a collector has been back to notice.
+ */
+export function expiresIn(iso: string | null): string | null {
+  if (!iso) return null;
+  const at = Date.parse(iso);
+  if (!Number.isFinite(at)) return null;
+  const secs = (at - Date.now()) / 1000;
+  if (secs <= 0) return "expired";
+  if (secs < 60) return "under a minute";
+  const mins = Math.floor(secs / 60);
+  if (mins < 60) return `${mins} min`;
+  const hours = Math.floor(mins / 60);
+  const rem = mins % 60;
+  if (hours < 24) return rem ? `${hours}h ${rem}m` : `${hours}h`;
+  return `${Math.floor(hours / 24)}d ${hours % 24}h`;
+}
+
+/** An assistant this close to the end may well be gone before you walk there. */
+export function expiringSoon(iso: string | null, mins = 30): boolean {
+  if (!iso) return false;
+  const at = Date.parse(iso);
+  return Number.isFinite(at) && at - Date.now() < mins * 60_000;
+}

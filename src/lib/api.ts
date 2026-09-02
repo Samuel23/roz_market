@@ -103,7 +103,20 @@ export type Vendor = {
   map_name: string | null;
   coord_x: number | null;
   coord_y: number | null;
+  /**
+   * When an offline Store Assistant's rental ends - the countdown the game
+   * shows under its stock list. Null for a live player standing there in
+   * person, who has no timer: an answer, not a gap.
+   */
+  expires_at: string | null;
+  /** The shop was still standing on the map. Says nothing about its prices. */
   last_seen: string;
+  /**
+   * Somebody opened the shop and saw its whole stock. Null means nobody ever
+   * has - it is known only from walking past or from a search, so whatever
+   * prices are shown for it are partial.
+   */
+  last_opened: string | null;
 };
 
 export type Query = {
@@ -172,7 +185,7 @@ export async function listVendors(
   u.searchParams.set(
     "select",
     "world,account_id,shop_title,owner_name,vendor_kind,shop_kind," +
-      "map_name,coord_x,coord_y,last_seen",
+      "map_name,coord_x,coord_y,expires_at,last_seen,last_opened",
   );
   u.searchParams.set("map_name", `eq.${map}`);
   u.searchParams.set("world", `eq.${world}`);
@@ -223,3 +236,81 @@ export async function listWorlds(signal?: AbortSignal): Promise<World[]> {
   if (!res.ok) throw new Error(`worlds failed (${res.status})`);
   return res.json();
 }
+
+/** One row per shop on a map: how much it is holding and how cheap it starts. */
+export type ShopSummary = {
+  vendor_id: number;
+  listings: number;
+  cheapest: number;
+  newest: string;
+};
+
+/**
+ * What every pin on a map is holding, one row per shop.
+ *
+ * The map used to derive this from a page of the map's 200 newest listings,
+ * which stopped being the whole map some time ago: on prt_mk_g1 that page
+ * covers 46 of the 208 shops that have prices, and every shop a contributor
+ * opens pushes an earlier one out of it. This asks the question the page is
+ * actually asking - "which shops have prices, and from how much" - so the
+ * answer does not depend on how much stock the rest of the map is holding.
+ */
+export async function mapShopSummary(
+  map: string,
+  world: string,
+  signal?: AbortSignal,
+): Promise<ShopSummary[]> {
+  if (!configured) throw new Error("not configured");
+  const res = await fetch(`${URL_BASE}/rest/v1/rpc/map_shop_summary`, {
+    method: "POST",
+    headers: { ...headers(), "Content-Type": "application/json" },
+    body: JSON.stringify({ p_world: world, p_map: map }),
+    signal,
+  });
+  if (!res.ok) throw new Error(`shop summary failed (${res.status})`);
+  return res.json();
+}
+
+/**
+ * Everything one shop is holding.
+ *
+ * Fetched when a pin is clicked rather than sliced out of a map-wide page,
+ * so a shop's stock is complete whether or not it was among the map's most
+ * recently updated. The vendor's own details are already on the page - they
+ * came with the pin - so this reads the listing rows directly and the caller
+ * pairs them up.
+ */
+export async function listShopStock(
+  world: string,
+  vendorId: number,
+  signal?: AbortSignal,
+): Promise<Omit<Listing, keyof VendorFacts>[]> {
+  if (!configured) throw new Error("not configured");
+  const u = new URL(`${URL_BASE}/rest/v1/market_listings`);
+  u.searchParams.set(
+    "select",
+    "id,item_id,item_name,item_type,price,quantity,refine,cards," +
+      "random_options,slot,updated_at,world,confidence,reports,vendor_id",
+  );
+  u.searchParams.set("world", `eq.${world}`);
+  u.searchParams.set("vendor_id", `eq.${vendorId}`);
+  u.searchParams.set("order", "price.asc");
+  const res = await fetch(u.toString(), { headers: headers(), signal });
+  if (!res.ok) throw new Error(`shop stock failed (${res.status})`);
+  const rows = await res.json();
+  return rows.map((r: Record<string, unknown>) => ({
+    ...r,
+    listing_id: String(r.id),
+  }));
+}
+
+/** The vendor half of a Listing, which the map already knows from the pin. */
+type VendorFacts = {
+  shop_title: string | null;
+  owner_name: string | null;
+  vendor_kind: "player" | "assistant" | null;
+  map_name: string | null;
+  coord_x: number | null;
+  coord_y: number | null;
+  shop_kind: ShopKind | null;
+};

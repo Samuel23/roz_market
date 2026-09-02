@@ -1,8 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import {
   listVendors,
-  searchMarket,
+  listShopStock,
+  mapShopSummary,
+  type ShopSummary,
   configured,
   type Listing,
   type Vendor,
@@ -12,7 +14,7 @@ import { ListingRow } from "../components/ListingRow";
 import { MapRadar } from "../components/MapRadar";
 import { ShopSign } from "../components/ShopSign";
 import { NaviCopy } from "../components/NaviCopy";
-import { ago, zeny } from "../lib/format";
+import { ago, expiresIn, expiringSoon, zeny } from "../lib/format";
 import { useWorld } from "../lib/world";
 import maps from "../data/maps.json";
 
@@ -50,7 +52,9 @@ export function MapPage() {
               { replace: true });
 
   const [vendors, setVendors] = useState<Vendor[]>([]);
-  const [rows, setRows] = useState<Listing[]>([]);
+  const [priced, setPriced] = useState<Map<number, ShopSummary>>(new Map());
+  const [stock, setStock] = useState<Listing[]>([]);
+  const [stockBusy, setStockBusy] = useState(false);
   const [busy, setBusy] = useState(false);
   const [open, setOpen] = useState<Listing | null>(null);
 
@@ -95,37 +99,35 @@ export function MapPage() {
     setBusy(true);
     Promise.all([
       listVendors(map, world, stop.signal).catch(() => [] as Vendor[]),
-      // Newest first, so a map with more listings than one page keeps the
-      // most recently confirmed ones.
-      // "any": on a map you are looking at particular shops, and a buying
-      // store's stock is the whole point of clicking its pin. The search page
-      // asks for asks; here both belong, labelled.
-      searchMarket({ map, world, kind: "any", sort: "time_desc", limit: 200 },
-                   stop.signal)
-        .then((r) => r.rows)
-        .catch(() => [] as Listing[]),
+      // One row per shop, not one per listing. Deriving "which pins are lit"
+      // from a page of the map's newest listings meant a busy map showed a
+      // fraction of itself - 46 of 208 on prt_mk_g1 - and every shop somebody
+      // opened pushed an earlier one back into the dark.
+      mapShopSummary(map, world, stop.signal).catch(() => [] as ShopSummary[]),
     ])
-      .then(([v, l]) => {
+      .then(([v, s]) => {
         setVendors(v);
-        setRows(l);
+        setPriced(new Map(s.map((r) => [r.vendor_id, r])));
       })
       .finally(() => setBusy(false));
     return () => stop.abort();
   }, [map, world]);
 
-  const priced = useMemo(() => {
-    const by = new Map<number, { count: number; cheapest: number }>();
-    for (const l of rows) {
-      const got = by.get(l.vendor_id);
-      if (got) {
-        got.count += 1;
-        got.cheapest = Math.min(got.cheapest, l.price);
-      } else {
-        by.set(l.vendor_id, { count: 1, cheapest: l.price });
-      }
+  // A clicked shop's stock is fetched for that shop, so it is complete
+  // whether or not the shop is among the map's most recently updated.
+  useEffect(() => {
+    if (!configured || picked === null) {
+      setStock([]);
+      return;
     }
-    return by;
-  }, [rows]);
+    const stop = new AbortController();
+    setStockBusy(true);
+    listShopStock(world, picked, stop.signal)
+      .then((rows) => setStock(rows as Listing[]))
+      .catch(() => setStock([]))
+      .finally(() => setStockBusy(false));
+    return () => stop.abort();
+  }, [picked, world]);
 
   const pins = vendors.map((v) => {
     const p = priced.get(v.account_id);
@@ -134,7 +136,7 @@ export function MapPage() {
       x: v.coord_x,
       y: v.coord_y,
       label: p
-        ? `${v.shop_title ?? "(untitled)"} - ${p.count} item(s), from ${zeny(p.cheapest)}`
+        ? `${v.shop_title ?? "(untitled)"} - ${p.listings} item(s), from ${zeny(p.cheapest)}`
         : `${v.shop_title ?? "(untitled)"} - no prices collected yet`,
       active: v.account_id === picked,
       dim: !p,
@@ -143,7 +145,6 @@ export function MapPage() {
   });
 
   const chosen = vendors.find((v) => v.account_id === picked) ?? null;
-  const stock = picked ? rows.filter((l) => l.vendor_id === picked) : [];
 
   if (!configured) {
     return <p className="text-sm text-slate-400">Not connected - see the search page.</p>;
@@ -193,15 +194,44 @@ export function MapPage() {
                 {chosen.coord_x != null && (
                   <NaviCopy map={map} x={chosen.coord_x} y={chosen.coord_y!} />
                 )}
-                - seen {ago(chosen.last_seen)}
+                - still there {ago(chosen.last_seen)}
               </p>
+              {/* The second clock, and the reason it is on its own line: for
+                  most of the index these two ages are nothing like each other.
+                  267 of 448 shops on file have never been opened at all, and
+                  "seen 2 min ago" over six-hour-old prices was the page
+                  claiming a freshness it did not have. */}
+              <p className="mb-2 text-xs text-slate-500">
+                {chosen.last_opened
+                  ? `Stock last checked ${ago(chosen.last_opened)}.`
+                  : "Nobody has opened this shop yet - only walked past it."}
+              </p>
+              {/* The assistant's own rental countdown, read off 0x0b62. It is
+                  worth its own line rather than another dash-separated scrap:
+                  it is the difference between a shop worth walking to and one
+                  that will not be there when you arrive. */}
+              {expiresIn(chosen.expires_at) && (
+                <p
+                  className={`mb-2 text-xs ${
+                    expiringSoon(chosen.expires_at)
+                      ? "text-amber-300/90"
+                      : "text-slate-500"
+                  }`}
+                >
+                  {expiresIn(chosen.expires_at) === "expired"
+                    ? "This assistant's rental has run out - the shop is gone."
+                    : `Rental ends in ${expiresIn(chosen.expires_at)}.`}
+                </p>
+              )}
               {chosen.shop_kind === "buy" && (
                 <p className="mb-2 text-xs text-amber-300/90">
                   This is a buying store. These are the prices it will pay you,
                   not prices you can buy at.
                 </p>
               )}
-              {stock.length === 0 ? (
+              {stockBusy ? (
+                <p className="text-sm text-slate-400">Loading this shop's stock...</p>
+              ) : stock.length === 0 ? (
                 <p className="text-sm text-slate-400">
                   Nobody has opened this shop yet, so the index knows where it is
                   but not what is in it.
