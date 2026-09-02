@@ -14,7 +14,7 @@ import { ListingRow } from "../components/ListingRow";
 import { MapRadar } from "../components/MapRadar";
 import { ShopSign } from "../components/ShopSign";
 import { NaviCopy } from "../components/NaviCopy";
-import { ago, expiresIn, expiringSoon, zeny } from "../lib/format";
+import { ago, expiresIn, expiringSoon, isStale, zeny } from "../lib/format";
 import { useWorld } from "../lib/world";
 import maps from "../data/maps.json";
 
@@ -194,8 +194,21 @@ export function MapPage() {
                 {chosen.coord_x != null && (
                   <NaviCopy map={map} x={chosen.coord_x} y={chosen.coord_y!} />
                 )}
-                - still there {ago(chosen.last_seen)}
+                - {isStale(chosen.last_seen, 1) ? "last seen" : "still there"}{" "}
+                {ago(chosen.last_seen)}
               </p>
+              {/* A shop nobody has walked past in an hour may simply not be
+                  there. The index cannot know - a vendor closing looks exactly
+                  like nobody having been back - so the page says which of the
+                  two it is telling you, instead of implying the shop is still
+                  standing because the row is still here. */}
+              {isStale(chosen.last_seen, 1) && (
+                <p className="mb-2 text-xs text-amber-300/90">
+                  Nobody has walked past this shop in{" "}
+                  {ago(chosen.last_seen).replace(" ago", "")}. It may well be
+                  gone - vendors close without the index being told.
+                </p>
+              )}
               {/* The second clock, and the reason it is on its own line: for
                   most of the index these two ages are nothing like each other.
                   267 of 448 shops on file have never been opened at all, and
