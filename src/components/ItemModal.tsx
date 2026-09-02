@@ -10,6 +10,7 @@ import { ItemIcon } from "./ItemIcon";
 import { MapRadar } from "./MapRadar";
 import { PriceChart } from "./PriceChart";
 import { ShopSign } from "./ShopSign";
+import { shopPath } from "../lib/shop";
 
 /**
  * One listing, opened: where to walk, and what the item has been going for.
@@ -116,7 +117,15 @@ export function ItemModal({
               <div className="flex gap-2">
                 <dt className="text-slate-500">Shop</dt>
                 <dd className="min-w-0">
-                  <ShopSign title={listing.shop_title} kind={listing.shop_kind} />
+                  <ShopSign
+                    title={listing.shop_title}
+                    kind={listing.shop_kind}
+                    to={
+                      listing.map_name
+                        ? shopPath(listing.world, listing.map_name, listing.vendor_id)
+                        : undefined
+                    }
+                  />
                 </dd>
               </div>
               {listing.owner_name && (

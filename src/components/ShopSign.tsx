@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import type { ShopKind } from "../lib/api";
 
 /**
@@ -48,6 +49,7 @@ export function ShopSign({
   title,
   kind: rawKind = "sell",
   variant = "row",
+  to,
   className = "",
 }: {
   title: string | null | undefined;
@@ -55,6 +57,13 @@ export function ShopSign({
   kind?: ShopKind | null;
   /** "row" in a list of listings, "board" as the heading over a shop. */
   variant?: "row" | "board";
+  /**
+   * Where the shop's own page is, if there is one to go to. In game a board
+   * is the thing you click to open the shop, so a board that is only a label
+   * reads as broken. Omitted where the sign already *is* the heading over
+   * that shop, and where the shop has no known map to show it on.
+   */
+  to?: string;
   className?: string;
 }) {
   const [failed, setFailed] = useState(false);
@@ -62,10 +71,13 @@ export function ShopSign({
   const board = variant === "board";
   const px = board ? 24 : 18;
 
+  const Tag = (to ? Link : "span") as React.ElementType;
   return (
-    <span
-      title={LABEL[kind]}
+    <Tag
+      {...(to ? { to } : {})}
+      title={to ? `${LABEL[kind]} - open this shop` : LABEL[kind]}
       className={
+        (to ? "cursor-pointer hover:border-slate-400 hover:brightness-95 " : "") +
         "relative inline-flex min-w-0 max-w-full items-center gap-1.5 rounded-[5px] " +
         "border border-[#c1c6c2] bg-white align-middle " +
         (board ? "px-1.5 py-1 text-sm" : "px-1 py-0.5 text-xs") +
@@ -101,6 +113,6 @@ export function ShopSign({
           className="absolute left-1/2 top-full -ml-[6px] h-0 w-0 border-x-[6px] border-t-[7px] border-x-transparent border-t-white"
         />
       )}
-    </span>
+    </Tag>
   );
 }

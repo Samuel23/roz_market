@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
   listVendors,
   searchMarket,
@@ -30,19 +31,66 @@ const DEFAULT_MAP = "prt_mk_g1";
  * in eight, and would look complete while doing it.
  */
 export function MapPage() {
-  const { world } = useWorld();
-  const [map, setMap] = useState(DEFAULT_MAP);
+  const { world, worlds, setWorld } = useWorld();
+  // Which map, and which shop on it, live in the URL rather than in state.
+  // A shop title anywhere on the site links here, and a link has to be able
+  // to say which shop it means - so does a shared or reloaded URL.
+  const [params, setParams] = useSearchParams();
+  const asked = params.get("map");
+  const map = asked && MAPS.includes(asked) ? asked : DEFAULT_MAP;
+  const picked = Number(params.get("vendor")) || null;
+  // Every write keeps the world in the URL, so a link the page produced is
+  // as complete as one a listing row produced - an account id names nothing
+  // without the world it lives on.
+  const setMap = (m: string) => setParams({ world, map: m });
+  const setPicked = (id: number | null) =>
+    setParams(id ? { world, map, vendor: String(id) } : { world, map },
+              { replace: true });
+
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [rows, setRows] = useState<Listing[]>([]);
   const [busy, setBusy] = useState(false);
-  const [picked, setPicked] = useState<number | null>(null);
   const [open, setOpen] = useState<Listing | null>(null);
+
+  // The URL and the world picker have to agree, and either can move first.
+  //
+  // Arriving on a link: the URL wins, because the link was written to point
+  // at a shop on a particular server. Afterwards the picker wins, and the
+  // shop goes with it - account ids are per world, so the one on screen does
+  // not exist on the new one.
+  //
+  // "The URL wins on arrival" has to mean once, not always: applied remembers
+  // which URL world has already been handed to the picker, so moving the
+  // picker afterwards is not immediately undone by the value still sitting in
+  // the address bar.
+  const wanted = params.get("world");
+  const applied = useRef<string | null>(null);
+  useEffect(() => {
+    if (wanted === world) {
+      applied.current = wanted;
+      return;
+    }
+    if (wanted && wanted !== applied.current
+        && worlds.some((w) => w.world === wanted)) {
+      applied.current = wanted;
+      setWorld(wanted);
+      return;
+    }
+    const next: Record<string, string> = { world, map };
+    // A URL that simply never named a world is not a world change; filling it
+    // in should not throw away the shop it did name.
+    if (!wanted && picked) next.vendor = String(picked);
+    applied.current = world;
+    setParams(next, { replace: true });
+    // setParams and setWorld are stable enough for this to run on a real
+    // change rather than on every render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [wanted, world, worlds]);
 
   useEffect(() => {
     if (!configured) return;
     const stop = new AbortController();
     setBusy(true);
-    setPicked(null);
     Promise.all([
       listVendors(map, world, stop.signal).catch(() => [] as Vendor[]),
       // Newest first, so a map with more listings than one page keeps the

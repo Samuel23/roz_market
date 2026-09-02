@@ -4,6 +4,7 @@ import { ago, isStale, itemLabel, refineClass, zeny } from "../lib/format";
 import { itemKind } from "../lib/itemtype";
 import { ItemIcon } from "./ItemIcon";
 import { ShopSign } from "./ShopSign";
+import { shopPath } from "../lib/shop";
 import cards from "../data/cards.json";
 import slots from "../data/slots.json";
 
@@ -33,15 +34,33 @@ export function ListingRow({
 }) {
   const stale = isStale(listing.updated_at);
   const kind = itemKind(listing.item_id, listing.item_type);
+  // A shop with no known map cannot be shown on the map page, so its sign
+  // stays a label. That is a vendor seen only in a search result, which
+  // carries a title and a price but never a position.
+  const shop = listing.map_name
+    ? shopPath(listing.world, listing.map_name, listing.vendor_id)
+    : undefined;
   return (
-    <button
-      type="button"
-      onClick={() => onOpen(listing)}
+    <div
       className={
-        "w-full rounded-lg border border-slate-700/70 bg-slate-900/50 p-3 text-left transition hover:border-slate-500 hover:bg-slate-900 " +
+        "relative rounded-lg border border-slate-700/70 bg-slate-900/50 p-3 text-left transition hover:border-slate-500 hover:bg-slate-900 " +
         (stale ? "opacity-60" : "")
       }
     >
+      {/*
+        The card opens the item. It is an overlay rather than a wrapper
+        because the shop sign inside it opens something else, and a button is
+        not allowed to contain a link - which is what the sign became once it
+        had somewhere to go. Absolutely positioned, so it paints over the
+        static content below and keeps the whole card clickable; the sign
+        lifts itself back above it with z-10.
+      */}
+      <button
+        type="button"
+        onClick={() => onOpen(listing)}
+        aria-label={`Open ${listing.item_name}`}
+        className="absolute inset-0 rounded-lg"
+      />
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         <span className={"inline-flex items-center gap-2 font-medium " + refineClass(listing.refine)}>
           <ItemIcon itemId={listing.item_id} size={22} />
@@ -104,7 +123,12 @@ export function ListingRow({
             <User className="h-3.5 w-3.5" /> live
           </span>
         )}
-        <ShopSign title={listing.shop_title} kind={listing.shop_kind} />
+        <ShopSign
+          title={listing.shop_title}
+          kind={listing.shop_kind}
+          to={shop}
+          className="relative z-10"
+        />
         {listing.owner_name && <span className="text-slate-500">{listing.owner_name}</span>}
         {listing.coord_x != null && (
           <span className="inline-flex items-center gap-1">
@@ -114,6 +138,6 @@ export function ListingRow({
         )}
         <span className="ml-auto">{ago(listing.updated_at)}</span>
       </div>
-    </button>
+    </div>
   );
 }
