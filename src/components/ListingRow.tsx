@@ -1,6 +1,7 @@
 import { Bot, MapPin, User } from "lucide-react";
 import type { Listing } from "../lib/api";
 import { ago, isStale, itemLabel, refineClass, zeny } from "../lib/format";
+import { itemKind } from "../lib/itemtype";
 import cards from "../data/cards.json";
 import slots from "../data/slots.json";
 
@@ -29,6 +30,7 @@ export function ListingRow({
   onOpen: (l: Listing) => void;
 }) {
   const stale = isStale(listing.updated_at);
+  const kind = itemKind(listing.item_id, listing.item_type);
   return (
     <button
       type="button"
@@ -47,6 +49,21 @@ export function ListingRow({
         </span>
         <span className="font-mono text-amber-200">{zeny(listing.price)}</span>
       </div>
+
+      {(kind.cls || kind.sub) && (
+        <div className="mt-1 flex flex-wrap items-center gap-1">
+          {kind.cls && (
+            <span className="rounded bg-slate-700/50 px-1.5 py-0.5 text-[11px] text-slate-300">
+              {kind.cls}
+            </span>
+          )}
+          {kind.sub && (
+            <span className="rounded bg-slate-800 px-1.5 py-0.5 text-[11px] text-slate-400">
+              {kind.sub}
+            </span>
+          )}
+        </div>
+      )}
 
       {listing.cards.length > 0 && (
         <div className="mt-1 flex flex-wrap gap-1">
