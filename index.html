@@ -4,6 +4,36 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Community-indexed vending prices for Ragnarok Online Zero - search shops, cards and random options, and find the vendor on the map." />
+    <!--
+      What this page is allowed to talk to, declared rather than assumed.
+
+      The site is static and renders no HTML it did not write, so this is not
+      patching a hole - it is a blast radius. If a dependency is ever
+      compromised, the interesting move is to exfiltrate somewhere, and
+      connect-src is the list of somewheres.
+
+      Each entry earns its place:
+        img-src     midgardhub.com serves the item icons; self serves the
+                    minimaps and the two shop board icons out of the GRF.
+        connect-src the Supabase project, substituted at build time so this
+                    follows the environment instead of pinning a project id.
+        style-src   unsafe-inline is required: React writes inline style
+                    attributes, and a style attribute is inline style.
+      frame-ancestors is deliberately absent - a meta CSP cannot enforce it,
+      and writing it here would only look like protection.
+    -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none';
+               script-src 'self';
+               style-src 'self' 'unsafe-inline';
+               img-src 'self' data: https://midgardhub.com;
+               connect-src 'self' %VITE_SUPABASE_URL%;
+               font-src 'self';
+               base-uri 'none';
+               form-action 'none';
+               object-src 'none'"
+    />
     <title>ROZ Market</title>
   </head>
   <body>
