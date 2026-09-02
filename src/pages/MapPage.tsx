@@ -8,6 +8,7 @@ import {
 } from "../lib/api";
 import { ItemModal } from "../components/ItemModal";
 import { MapRadar } from "../components/MapRadar";
+import { ShopSign } from "../components/ShopSign";
 import { ago, zeny } from "../lib/format";
 import { useWorld } from "../lib/world";
 import maps from "../data/maps.json";
@@ -128,8 +129,8 @@ export function MapPage() {
             </p>
           ) : (
             <>
-              <h2 className="shop-title text-slate-200">
-                {chosen.shop_title ?? "(untitled shop)"}
+              <h2 className="mb-3 flex">
+                <ShopSign title={chosen.shop_title} variant="board" />
               </h2>
               <p className="mb-2 text-xs text-slate-500">
                 {chosen.owner_name ? `${chosen.owner_name} - ` : ""}

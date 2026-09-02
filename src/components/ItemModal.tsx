@@ -9,6 +9,7 @@ import { itemPageUrl } from "../lib/midgard";
 import { ItemIcon } from "./ItemIcon";
 import { MapRadar } from "./MapRadar";
 import { PriceChart } from "./PriceChart";
+import { ShopSign } from "./ShopSign";
 
 /**
  * One listing, opened: where to walk, and what the item has been going for.
@@ -114,8 +115,8 @@ export function ItemModal({
             <dl className="mt-3 space-y-1 text-sm">
               <div className="flex gap-2">
                 <dt className="text-slate-500">Shop</dt>
-                <dd className="shop-title text-slate-200">
-                  {listing.shop_title ?? "(untitled)"}
+                <dd className="min-w-0">
+                  <ShopSign title={listing.shop_title} />
                 </dd>
               </div>
               {listing.owner_name && (

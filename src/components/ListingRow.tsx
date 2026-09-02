@@ -3,6 +3,7 @@ import type { Listing } from "../lib/api";
 import { ago, isStale, itemLabel, refineClass, zeny } from "../lib/format";
 import { itemKind } from "../lib/itemtype";
 import { ItemIcon } from "./ItemIcon";
+import { ShopSign } from "./ShopSign";
 import cards from "../data/cards.json";
 import slots from "../data/slots.json";
 
@@ -103,9 +104,7 @@ export function ListingRow({
             <User className="h-3.5 w-3.5" /> live
           </span>
         )}
-        <span className="shop-title truncate text-slate-300">
-          {listing.shop_title ?? "(untitled shop)"}
-        </span>
+        <ShopSign title={listing.shop_title} />
         {listing.owner_name && <span className="text-slate-500">{listing.owner_name}</span>}
         {listing.coord_x != null && (
           <span className="inline-flex items-center gap-1">
