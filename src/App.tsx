@@ -1,5 +1,6 @@
 import { Download, Map as MapIcon, Store } from "lucide-react";
 import { HashRouter, NavLink, Route, Routes } from "react-router-dom";
+import { Contribute } from "./pages/Contribute";
 import { Home } from "./pages/Home";
 import { MapPage } from "./pages/MapPage";
 import { SupportPill } from "./components/SupportPill";
@@ -39,18 +40,14 @@ export default function App() {
             </NavLink>
             {/* The index only has what somebody walked past, so the way to
                 make it better belongs on the page rather than in a README
-                nobody arrives at. Points at the how-to rather than straight at
-                the download: the release page hands you a .exe with no
-                explanation of what the box does or how to untick it, and that
-                is the wrong first thing to show someone. */}
-            <a
-              href="https://github.com/Samuel23/roz_monitor/blob/main/MARKET_CONTRIBUTING.md"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm text-slate-400 transition hover:bg-slate-800/60 hover:text-slate-200"
-            >
+                nobody arrives at. A page here rather than a link out to
+                GitHub, which is where a player who is not a developer stops
+                reading - and never straight at the download, because the
+                release page hands you a .exe with no explanation of what the
+                box does or how to untick it. */}
+            <NavLink to="/contribute" className={tab}>
               <Download className="h-4 w-4" /> Contribute
-            </a>
+            </NavLink>
           </nav>
           <WorldPicker />
         </header>
@@ -59,6 +56,7 @@ export default function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/map" element={<MapPage />} />
+            <Route path="/contribute" element={<Contribute />} />
             <Route path="*" element={<Home />} />
           </Routes>
         </main>

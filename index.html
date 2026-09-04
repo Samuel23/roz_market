@@ -35,6 +35,34 @@
                object-src 'none'"
     />
     <title>ROZ Market</title>
+
+    <!--
+      What this link looks like when somebody pastes it.
+
+      The index spreads by being shared - into a Discord channel, a Facebook
+      group, a guild chat - and every one of those unfurls a link by reading
+      these tags. Without them the same URL arrives as a bare grey string, and
+      a bare grey string asking players to trust a price index is a hard sell.
+
+      The URLs are absolute because a crawler has no page to resolve them
+      against, and og.png is drawn rather than screenshotted: a real capture of
+      the index carries shop titles and character names, which is exactly what
+      the README screenshots go to the trouble of pseudonymising.
+    -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="ROZ Market" />
+    <meta property="og:title" content="ROZ Market - community vending prices for Ragnarok Online Zero" />
+    <meta property="og:description" content="Search what players are selling by item, socketed card or random option, see what a shop had when someone last looked, and find the vendor on the map." />
+    <meta property="og:url" content="https://samuel23.github.io/roz_market/" />
+    <meta property="og:image" content="https://samuel23.github.io/roz_market/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Three market listings - a Triple Critical Stiletto, a Hurricane Composite Bow and a Hood - with prices and random options." />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="ROZ Market - community vending prices for Ragnarok Online Zero" />
+    <meta name="twitter:description" content="Search what players are selling by item, socketed card or random option, and find the vendor on the map." />
+    <meta name="twitter:image" content="https://samuel23.github.io/roz_market/og.png" />
+    <meta name="theme-color" content="#0f1117" />
   </head>
   <body>
     <div id="root"></div>
