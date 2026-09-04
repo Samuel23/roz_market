@@ -1,22 +1,18 @@
 import { Bot, User, Users } from "lucide-react";
 import type { Listing } from "../lib/api";
-import { ago, isStale, itemLabel, refineClass, zeny } from "../lib/format";
+import { ago, isStale, refineClass, zeny } from "../lib/format";
+import { cardAffix, composeItemName, isCrafted } from "../lib/itemname";
 import { itemKind } from "../lib/itemtype";
 import { ItemIcon } from "./ItemIcon";
 import { ShopSign } from "./ShopSign";
 import { shopPath } from "../lib/shop";
 import { NaviCopy } from "./NaviCopy";
-import cards from "../data/cards.json";
 import slots from "../data/slots.json";
+import { cardName } from "../lib/catalog";
 
-const CARDS = cards as Record<string, string>;
 // Only slotted items are in here - about 1,400 of 31,000 - so a miss means
 // "no slots", not "unknown".
 const SLOTS = slots as Record<string, number>;
-
-function cardName(id: number): string {
-  return CARDS[String(id)] ?? `#${id}`;
-}
 
 /**
  * One item for sale.
@@ -74,7 +70,7 @@ export function ListingRow({
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         <span className={"inline-flex items-center gap-2 font-medium " + refineClass(listing.refine)}>
           <ItemIcon itemId={listing.item_id} size={22} />
-          {itemLabel(listing.item_name, listing.refine, SLOTS[listing.item_id])}
+          {composeItemName(listing.item_name, listing.refine, SLOTS[listing.item_id], listing.cards)}
           {listing.quantity > 1 && (
             <span className="ml-2 text-xs text-slate-400">x{listing.quantity}</span>
           )}
@@ -103,12 +99,20 @@ export function ListingRow({
         </div>
       )}
 
-      {listing.cards.length > 0 && (
+      {/*
+        The cards themselves, under the composed name. Both are needed: the
+        name says "Double Critical Katar", which is what a buyer searches for,
+        and the chips say which card that was, which is what they are paying
+        for. A crafted item's slots hold a smith id, not cards, so it gets
+        neither.
+      */}
+      {listing.cards.length > 0 && !isCrafted(listing.cards) && (
         <div className="mt-1 flex flex-wrap gap-1">
           {listing.cards.map((c, i) => (
             <span
               key={`${c}-${i}`}
               className="rounded bg-indigo-500/15 px-1.5 py-0.5 text-[11px] text-indigo-200"
+              title={cardAffix(c) ? `names it "${cardAffix(c)}"` : undefined}
             >
               {cardName(c)}
             </span>

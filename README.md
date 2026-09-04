@@ -13,6 +13,25 @@ live feed and it is never complete: a shop nobody has opened has a position
 and a name but no prices, and a price is only as current as its timestamp,
 which is shown on every row.
 
+## Searching
+
+The box searches three things at once, because a listing is looked up by more
+than its name:
+
+- **an item**, by name or by its numeric ID - the same ids the client tables,
+  the wiki and MidgardHub use, so a number pasted in goes straight to that
+  one item;
+- **a card socketed in it** - by the card's own name, or by the word it puts
+  into the item's name. "Hurricane" finds the Andre Card, which is how most
+  players know it;
+- **a random option**, by its wording.
+
+Cards and options become filters rather than search terms, and they stack: up
+to four cards, all of which must be in the item, and up to five options, each
+with a minimum roll - so "ATK +25 or better, and CRI +3 or better" is one
+query. Items are shown the way the game writes them, affixes and all:
+**+7 Triple Critical Stiletto [3]**, not "Stiletto".
+
 ## Contributing prices
 
 Nothing here is scraped or entered by hand. The index is only as good as the

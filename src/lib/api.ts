@@ -125,8 +125,26 @@ export type Query = {
   min_price?: number;
   max_price?: number;
   refine?: number;
-  card_id?: number;
-  opt_id?: number;
+  /**
+   * Cards that must be socketed in the item - all of them, in any socket.
+   *
+   * A list rather than one id because that is how an item is actually
+   * shopped for: "a Katar with a Critical Card" is a fine question and "with
+   * a Critical and a Skeleton Worker" is a better one. Containment, so
+   * asking for the same card twice asks nothing extra - "two of these" is
+   * not something the stored array can be asked.
+   */
+  card_ids?: number[];
+  /** Random options that must all be present, by wire index. */
+  opt_ids?: number[];
+  /**
+   * The lowest roll worth returning for each of `opt_ids`, by position.
+   *
+   * An option's index says what it is and its value says whether it is worth
+   * buying - ATK +3 and ATK +30 are the same index - so a filter that could
+   * only name the index was asking half the question.
+   */
+  opt_min?: number[];
   map?: string;
   world?: string;
   /** Omitted means asks only. "any" is for looking at one shop. */
@@ -144,6 +162,14 @@ function url(fn: string, params: Record<string, unknown>) {
   const u = new URL(`${URL_BASE}/functions/v1/${fn}`);
   for (const [k, v] of Object.entries(params)) {
     if (v === undefined || v === null || v === "") continue;
+    // A list goes over as `a,b,c`, and an empty one is not a filter at all -
+    // `String([])` is the empty string, so without this an emptied picker
+    // would send `card_id=` and read as a filter rather than as none.
+    if (Array.isArray(v)) {
+      if (v.length === 0) continue;
+      u.searchParams.set(k, v.join(","));
+      continue;
+    }
     u.searchParams.set(k, String(v));
   }
   return u.toString();
@@ -154,10 +180,20 @@ export async function searchMarket(
   signal?: AbortSignal,
 ): Promise<SearchResult> {
   if (!configured) throw new Error("not configured");
-  const res = await fetch(url("search-market", query), {
-    headers: headers(),
-    signal,
-  });
+  // The three list filters are plural here and singular on the wire, because
+  // the query string is the older half of the pair: `card_id=4086,4117` is
+  // what the function is called with, one id or several.
+  const { card_ids, opt_ids, opt_min, ...rest } = query;
+  const res = await fetch(
+    url("search-market", {
+      ...rest,
+      card_id: card_ids,
+      opt_id: opt_ids,
+      // Meaningless without the options it pairs with, position by position.
+      opt_min: opt_ids?.length ? opt_min : undefined,
+    }),
+    { headers: headers(), signal },
+  );
   if (!res.ok) throw new Error(`search failed (${res.status})`);
   return res.json();
 }

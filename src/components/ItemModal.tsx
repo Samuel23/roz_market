@@ -1,7 +1,8 @@
 import { ExternalLink, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { priceHistory, type Listing, type PricePoint } from "../lib/api";
-import { ago, itemLabel, zeny } from "../lib/format";
+import { ago, zeny } from "../lib/format";
+import { composeItemName } from "../lib/itemname";
 import slots from "../data/slots.json";
 
 const SLOTS = slots as Record<string, number>;
@@ -68,7 +69,7 @@ export function ItemModal({
             <ItemIcon itemId={listing.item_id} size={40} className="mt-0.5" />
             <div>
             <h2 className="text-lg font-medium text-slate-100">
-              {itemLabel(listing.item_name, listing.refine, SLOTS[listing.item_id])}
+              {composeItemName(listing.item_name, listing.refine, SLOTS[listing.item_id], listing.cards)}
             </h2>
             <p className="mt-0.5 text-sm text-slate-400">
               <span className="font-mono text-amber-200">{zeny(listing.price)}</span>
