@@ -221,6 +221,17 @@ export function Contribute() {
           capture socket is receive-only, so nothing is ever transmitted to the
           game server.
         </p>
+        {/*
+          The part of that paragraph a player can check for themselves, which
+          is worth more than the rest of it put together.
+        */}
+        <p className="mt-2 max-w-3xl text-sm leading-relaxed text-slate-300">
+          You do not have to take any of that on trust. The Setup tab shows a{" "}
+          <span className="text-slate-100">live list of what it is reading</span>
+          , by packet name, updating as you play - walk into a shop and
+          ZC_STORE_ENTRY appears. Names only: what the game sent, never what it
+          said.
+        </p>
         <a
           href={SAFETY}
           target="_blank"
