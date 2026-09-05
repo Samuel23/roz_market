@@ -103,14 +103,26 @@ console.log(
   `mock API: ${LISTINGS.length} listings, ${PLACED.length} placed vendors, map ${fixture.map}`,
 );
 
+/** A comma-separated id list as numbers; anything unreadable is dropped. */
+function ids(v) {
+  if (!v) return [];
+  return v.split(",").map((x) => Number(x.trim())).filter(Number.isFinite);
+}
+
 function search(p) {
   const q = (p.get("q") ?? "").toLowerCase();
   const itemId = Number(p.get("item_id")) || null;
   const minPrice = Number(p.get("min_price")) || null;
   const maxPrice = Number(p.get("max_price")) || null;
   const refine = Number(p.get("refine")) || null;
-  const cardId = Number(p.get("card_id")) || null;
-  const optId = Number(p.get("opt_id")) || null;
+  // Lists, the way the real function takes them: `card_id=4086,4117` means
+  // every one of those cards is in the item, and opt_min pairs positionally
+  // with opt_id. Number("4086,4117") is NaN, so reading these as scalars did
+  // not narrow the search - it silently stopped filtering, which is the worst
+  // way for a mock to be wrong: the UI looks like it works.
+  const cardIds = ids(p.get("card_id"));
+  const optIds = ids(p.get("opt_id"));
+  const optMin = ids(p.get("opt_min"));
   const map = p.get("map") || null;
   const world = p.get("world") || null;
   const sort = p.get("sort") ?? "price_asc";
@@ -127,8 +139,9 @@ function search(p) {
     if (minPrice && l.price < minPrice) return false;
     if (maxPrice && l.price > maxPrice) return false;
     if (refine && l.refine < refine) return false;
-    if (cardId && !l.cards.includes(cardId)) return false;
-    if (optId && !l.random_options.some((o) => o.index === optId)) return false;
+    if (cardIds.length && !cardIds.every((c) => l.cards.includes(c))) return false;
+    if (optIds.length && !optIds.every((idx, at) => l.random_options.some(
+        (o) => o.index === idx && o.value >= (optMin[at] ?? 0)))) return false;
     if (map && l.map_name !== map) return false;
     // Everything here is Skadi, so asking for another world correctly
     // returns nothing - the same as the real API before anyone plays there.
